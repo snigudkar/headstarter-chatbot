@@ -2,6 +2,7 @@ const userInput = document.querySelector("#user-input");
 const sendButton = document.querySelector("#send-button");
 const chatbox = document.querySelector(".chat-body");
 
+
 const adjustTextAreaHeight = () => {
     userInput.style.height = 'auto'; 
     userInput.style.height = `${userInput.scrollHeight}px`; 
@@ -14,8 +15,34 @@ const createChatDiv = (message, className) => {
     return chatDiv;
 };
 
-const generateResponse = () => {
-   
+
+const generateResponse = async (incomingChat,userMessage) => {
+    const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=AIzaSyAOVrQQpNXmkdjj_A-S3OcHogfIdOLTgeI";
+    const messageElement = incomingChat.querySelector("p");
+
+    const requestOptions = {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            "contents": [{
+                "role": "user",
+                "parts": [{ "text": userMessage }]
+            }]
+        }),
+    };
+
+    try {
+        const response = await fetch(API_URL, requestOptions);
+        const data = await response.json();
+        console.log("API Response:", data); // Log response for debugging
+        messageElement.textContent = data.candidates[0]?.content?.parts[0]?.text || "No response";
+    } catch (error) {
+        console.error("Error:", error);
+        messageElement.textContent = "Oops! Something went wrong. Please try again.";
+    }
+
 };
 
 const displayChat = () => {
@@ -28,12 +55,13 @@ const displayChat = () => {
     chatbox.scrollTo(0, chatbox.scrollHeight);  
 
     setTimeout(() => {
-        chatbox.appendChild(createChatDiv("Thinking....", "bot-message"));
+        const incomingChat=createChatDiv("Thinking....", "bot-message")
+        chatbox.appendChild(incomingChat);
         chatbox.scrollTo(0, chatbox.scrollHeight);  
-        generateResponse();
+        generateResponse(incomingChat,userMessage);
     }, 600);
 };
 
 userInput.addEventListener("input", adjustTextAreaHeight);
-
 sendButton.addEventListener("click", displayChat);
+
