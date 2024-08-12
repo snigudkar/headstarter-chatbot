@@ -1,3 +1,6 @@
+
+
+import API_KEY from "./apikey.js";
 const userInput = document.querySelector("#user-input");
 const sendButton = document.querySelector("#send-button");
 const chatbox = document.querySelector(".chat-body");
@@ -14,10 +17,18 @@ const createChatDiv = (message, className) => {
     chatDiv.innerHTML = `<p>${message}</p>`;
     return chatDiv;
 };
+// Function to format markdown-like text
+const formatText = (text) => {
+    return text
+        .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")  // Bold
+        .replace(/_(.*?)_/g, "<em>$1</em>")               // Italic
+        .replace(/\n/g, "<br>");                          // New lines
+};
 
 
 const generateResponse = async (incomingChat,userMessage) => {
-    const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=AIzaSyAOVrQQpNXmkdjj_A-S3OcHogfIdOLTgeI";
+   
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${API_KEY}`;
     const messageElement = incomingChat.querySelector("p");
 
     const requestOptions = {
@@ -37,7 +48,12 @@ const generateResponse = async (incomingChat,userMessage) => {
         const response = await fetch(API_URL, requestOptions);
         const data = await response.json();
         console.log("API Response:", data); // Log response for debugging
-        messageElement.textContent = data.candidates[0]?.content?.parts[0]?.text || "No response";
+        
+        
+        const botResponse = data.candidates[0]?.content?.parts[0]?.text || "No response";
+        const formattedResponse = formatText(botResponse);
+
+        messageElement.innerHTML = formattedResponse;
     } catch (error) {
         console.error("Error:", error);
         messageElement.textContent = "Oops! Something went wrong. Please try again.";
@@ -64,4 +80,3 @@ const displayChat = () => {
 
 userInput.addEventListener("input", adjustTextAreaHeight);
 sendButton.addEventListener("click", displayChat);
-
